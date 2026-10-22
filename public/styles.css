@@ -36,10 +36,10 @@ a{color:#f4c860}a:hover{color:#ffd98a}
 
 /* ---------- Fireworks (on opening) ---------- */
 .burst{position:absolute;z-index:7;pointer-events:none}
-.burst i{position:absolute;left:50%;top:22%;width:calc(7px * var(--s));height:calc(7px * var(--s));margin:calc(-3.5px * var(--s)) 0 0 calc(-3.5px * var(--s));border-radius:50%;background:var(--c);box-shadow:0 0 6px 1px var(--c);opacity:0;will-change:transform,opacity;animation:burst .95s cubic-bezier(.15,.85,.3,1) var(--t) both}
+.burst i{position:absolute;left:50%;top:14%;width:calc(7px * var(--s));height:calc(7px * var(--s));margin:calc(-3.5px * var(--s)) 0 0 calc(-3.5px * var(--s));border-radius:50%;background:var(--c);box-shadow:0 0 6px 1px var(--c);opacity:0;will-change:transform,opacity;animation:burst .95s cubic-bezier(.15,.85,.3,1) var(--t) both}
 @keyframes burst{0%{transform:translate(0,0) scale(.4);opacity:0}8%{opacity:1}65%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
 
-.burst .flash{position:absolute;left:50%;top:22%;width:60%;aspect-ratio:1/1;margin-left:-30%;transform:translateY(-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,244,200,.9) 0%,rgba(255,214,100,.45) 35%,rgba(255,200,80,0) 70%);mix-blend-mode:screen;animation:flash .7s ease-out both}
+.burst .flash{position:absolute;left:50%;top:14%;width:60%;aspect-ratio:1/1;margin-left:-30%;transform:translateY(-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,244,200,.9) 0%,rgba(255,214,100,.45) 35%,rgba(255,200,80,0) 70%);mix-blend-mode:screen;animation:flash .7s ease-out both}
 @keyframes flash{0%{transform:translateY(-50%) scale(.3);opacity:0}25%{opacity:1}100%{transform:translateY(-50%) scale(1.6);opacity:0}}
 /* keep the test-mode buttons at the bottom on phones (the art's top is the sky) */
 .lay-m .test-bar{top:auto;bottom:12px}
@@ -51,18 +51,22 @@ a{color:#f4c860}a:hover{color:#ffd98a}
 .lay-m .toast-region{bottom:auto;top:40%}
 
 /* ---------- Gift boxes ----------
-   Each box front (cut from the artwork) is a flap hinged along its top edge. On
-   opening it swings up and back into the box, inside its own frame (overflow
-   hidden, so it never covers a neighbour), fades, and leaves a lit interior
-   with a glowing golden star. */
-.slot{position:absolute;overflow:hidden;border-radius:4px;perspective:600px;z-index:2}
-.interior{position:absolute;inset:0;background:#2a0c0c;box-shadow:inset 0 0 0 2px #3d1313,inset 0 0 18px 6px rgba(0,0,0,.75)}
-.glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 52%,rgba(255,236,170,.95) 0%,rgba(247,188,78,.75) 20%,rgba(160,70,20,.45) 50%,rgba(40,14,5,0) 76%);opacity:0;transition:opacity .5s ease .25s}
+   A slot covers one box: the lid (with its bow) at the top and the numbered
+   front below. The lid is that piece of the artwork, cut out as its own layer.
+   On opening it pops off and flies up and away, spinning, and fades; beneath
+   it the hole shows a dark, lit interior out of which a golden star rises.
+   The numbered front stays in the picture, so an opened box still reads as
+   "box without lid". The slot does not clip, so the lid can leave the box. */
+.slot{position:absolute;overflow:visible;border-radius:4px;z-index:2}
+.slot.is-opening{z-index:6}
+.hole{position:absolute;left:0;right:0;top:0;border-radius:6px 6px 3px 3px;background:#2a0c0c;box-shadow:inset 0 0 0 2px #3d1313,inset 0 0 14px 5px rgba(0,0,0,.75);opacity:0;transition:opacity .25s ease .12s}
+.is-open .hole{opacity:1}
+.glow{position:absolute;inset:-30% -10%;background:radial-gradient(ellipse at 50% 60%,rgba(255,236,170,.95) 0%,rgba(247,188,78,.7) 22%,rgba(200,90,20,.35) 50%,rgba(40,14,5,0) 74%);opacity:0;transition:opacity .5s ease .25s;pointer-events:none}
 .is-open .glow{opacity:1}
 .is-done .glow{animation:glowPulse 2.8s ease-in-out infinite}
 @keyframes glowPulse{0%,100%{opacity:.8}50%{opacity:1}}
-.star{position:absolute;left:50%;top:50%;width:48%;height:48%;opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-30deg);transition:transform .6s cubic-bezier(.2,.9,.3,1.3) .3s,opacity .4s ease .3s;filter:drop-shadow(0 0 6px rgba(255,220,120,.95))}
-.is-open .star{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}
+.star{position:absolute;left:50%;top:50%;width:70%;height:110%;opacity:0;transform:translate(-50%,-30%) scale(.3) rotate(-40deg);transition:transform .7s cubic-bezier(.2,.9,.3,1.3) .35s,opacity .4s ease .35s;filter:drop-shadow(0 0 6px rgba(255,220,120,.95))}
+.is-open .star{opacity:1;transform:translate(-50%,-62%) scale(1) rotate(0)}
 .is-done .star{animation:starGlow 2.8s ease-in-out infinite}
 @keyframes starGlow{0%,100%{filter:drop-shadow(0 0 5px rgba(255,220,120,.8))}50%{filter:drop-shadow(0 0 14px rgba(255,226,140,1)) brightness(1.12)}}
 .spark{position:absolute;width:13%;aspect-ratio:1/1;border-radius:50%;background:radial-gradient(circle,#fffbe8 0%,#ffd56b 35%,rgba(255,213,107,0) 70%);opacity:0;transform:scale(0)}
@@ -75,16 +79,19 @@ a{color:#f4c860}a:hover{color:#ffd98a}
 .spark.s6{left:48%;top:78%;animation-delay:.45s!important}
 @keyframes spark{0%{opacity:0;transform:scale(0)}35%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(.4) translateY(-40%)}}
 
-.leaf{position:absolute;inset:0;transform-origin:50% 0;transform-style:preserve-3d;transition:transform 750ms cubic-bezier(.3,.75,.25,1),opacity 260ms ease 520ms;pointer-events:none}
-.slot:not(.is-open):hover .leaf{transform:rotateX(7deg)}
-.is-open .leaf{transform:rotateX(100deg);opacity:0}
-.is-done .leaf{visibility:hidden}
-.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+/* The lid: a cut-out of the artwork over the box top. Hovering lifts it a touch;
+   opening blasts it up and sideways (--lx / --lr are set per box by the script),
+   with a little pop first, then it fades while still in flight. */
 .crop{background-image:url(assets/backgrounds/calendar-desktop.webp);background-image:image-set(url(assets/backgrounds/calendar-desktop.avif) type("image/avif"),url(assets/backgrounds/calendar-desktop.webp) type("image/webp"));background-repeat:no-repeat}
-.front::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55));opacity:0;transition:opacity 750ms ease}
-.slot:not(.is-open):hover .front::after{opacity:.15}
-.is-open .front::after{opacity:1}
-.back{transform:rotateX(180deg);background-color:#5a1515;background-image:linear-gradient(180deg,#6b1a1a,#3f0e0e);box-shadow:inset 0 0 0 3px #2d0909,inset 0 0 16px rgba(0,0,0,.55)}
+.lid{position:absolute;left:0;right:0;top:0;pointer-events:none;transform-origin:50% 80%;transition:transform .25s ease;will-change:transform,opacity;--lx:50%;--lr:30deg}
+.slot:not(.is-open):hover .lid{transform:translateY(-4%)}
+.is-open .lid{animation:lidFly .85s cubic-bezier(.2,.7,.3,1) both;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35))}
+.is-done .lid{visibility:hidden}
+@keyframes lidFly{
+0%{transform:translate(0,0) rotate(0) scale(1);opacity:1}
+12%{transform:translate(0,-18%) rotate(calc(var(--lr) * -.15)) scale(1.08);opacity:1}
+60%{opacity:1}
+100%{transform:translate(var(--lx),-320%) rotate(var(--lr)) scale(.7);opacity:0}}
 
 .hit{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:4px;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;z-index:5;transition:box-shadow .2s,background-color .2s}
 .hit:hover{background-color:rgba(255,236,170,.1);box-shadow:inset 0 0 0 2px rgba(255,224,140,.75),inset 0 0 24px rgba(255,210,100,.4)}
@@ -180,7 +187,8 @@ a{color:#f4c860}a:hover{color:#ffd98a}
 .flake-deco{display:none}
 }
 @media (prefers-reduced-motion:reduce){
-.cta,.hit,.leaf,.glow,.star,.front::after{transition:none!important}
+.cta,.hit,.lid,.hole,.glow,.star{transition:none!important}
+.is-open .lid{animation:none!important;opacity:0}
 .burst{display:none}
 .bulb,.spark,.overlay,.dlg-wrap,.elf-top,.toast,.adv-root::after,.is-shake .hit,.is-done .glow,.is-done .star{animation:none!important}
 .snow{display:none}
