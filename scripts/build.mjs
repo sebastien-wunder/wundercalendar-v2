@@ -12,8 +12,9 @@ cpSync(src, out, { recursive: true });
 
 const required = [
   'index.html', 'styles.css', 'app.js', 'favicon.ico', 'favicon.svg', 'favicon-32.png', 'apple-touch-icon.png',
-  'assets/scene-desktop.avif', 'assets/scene-mobile.avif',
-  'assets/elf-top.avif', 'assets/audio/door-open.mp3',
+  'assets/backgrounds/calendar-desktop.avif', 'assets/backgrounds/calendar-desktop.webp',
+  'assets/backgrounds/calendar-mobile.avif', 'assets/backgrounds/calendar-mobile.webp',
+  'assets/elf-top.avif', 'assets/sounds/gift-open.mp3',
   'assets/fonts/BovineMVB.otf',
   'assets/fonts/SourceSans3-latin.woff2', 'assets/fonts/SourceSans3-latin-ext.woff2'
 ];

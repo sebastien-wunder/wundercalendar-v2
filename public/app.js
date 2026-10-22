@@ -1,4 +1,4 @@
-/* Wunderino Christmas Advent Calendar — vanilla JS, no dependencies. */
+/* WunderCalendar V2 — Christmas Advent Calendar — vanilla JS, no dependencies. */
 (function () {
 "use strict";
 
@@ -31,24 +31,34 @@ const CTA_LABEL = 'Spiele jetzt';
 const CTA_URL = 'https://www.wunderino.de/';
 
 const DOOR_COUNT = 24;
-const OPEN_MS = 780;      /* door swing + fade (matches the CSS transitions) */
-const REVEAL_MS = 120;    /* pause on the glowing star before the offer appears */
+const OPEN_MS = 780;      /* lid swing + fade (matches the CSS transitions) */
+const REVEAL_MS = 260;    /* pause on the fireworks before the offer appears */
+const BURST_AT_MS = 260;  /* fireworks start this long after the click */
 const STORE_KEY = 'advent-opened-v1'; /* remembers opened doors in production mode */
 const TOAST_MS = 2800;
 const ELF_DAY = 24;       /* this door's pop-up is held by the elf character */
 
-/* Door geometry, in pixels of the 2688 × 1504 artwork. */
-const IMG_W = 2688;
-const IMG_H = 1504;
-const COLS_X = [652, 890, 1122, 1360, 1596, 1834];
-const ROWS_Y = [542, 765, 987, 1206];
-const DOOR_W = 205;
-const DOOR_H = 195;
-/* Mobile (portrait) artwork */
-const IMG_M_W = 752;
-const IMG_M_H = 1344;
-const BULBS_M_PX = [[354,119],[400,118],[427,156],[326,157],[387,156],[370,176],[351,196],[337,226],[415,225],[286,246],[467,246],[536,329],[216,330],[427,428],[324,428],[150,474,52],[598,474,52]];
-const BULBS_PX = [[2242,1112],[96,1381],[2678,909],[61,371],[377,769],[2593,921],[2126,1103],[2508,1242],[2626,800],[2379,692],[2512,338],[2542,402],[555,1219],[427,330],[2447,658],[2210,1025],[299,750],[471,784],[2117,993],[516,960],[37,563],[2304,742],[2654,591],[2565,277],[2360,803],[2661,1479],[2322,949],[582,776],[2405,895],[337,901],[486,367],[426,1171],[2683,464],[2218,784],[134,774],[2128,894],[2104,600],[575,1094],[146,1076],[788,1461],[860,253],[1214,256],[1501,257],[1668,262],[1010,364],[1070,390],[1611,392],[786,406],[721,428],[882,462],[1093,482],[1796,458],[1878,492],[1992,420],[2030,444],[533,428],[556,482],[1846,352],[1662,362],[1430,234],[1170,266],[2126,494],[892,188],[1776,186]];
+/* ============================================================
+   GIFT BOX MAP
+   Each entry is the gold number plate of one box, [x0, y0, x1, y1] in pixels
+   of the artwork, boxes 1–24 in order (measured from the images). The
+   clickable area / opening lid is the plate grown by PLATE_GROW to cover the
+   box front. Add ?debug=boxes to the URL to outline the areas on screen.
+   ============================================================ */
+/* Desktop artwork 2000 × 1126 */
+const IMG_W = 2000;
+const IMG_H = 1126;
+const PLATES_PX = [[956,148,1040,254],[890,288,974,374],[1028,290,1110,376],[810,414,898,504],[968,412,1056,504],[1130,414,1214,508],[732,544,810,628],[868,538,958,634],[1014,538,1100,630],[1228,544,1304,626],[636,668,718,752],[792,666,876,756],[962,670,1038,752],[1136,666,1226,756],[1310,670,1396,752],[574,794,668,876],[756,804,852,896],[944,798,1036,884],[1124,792,1216,884],[1316,804,1404,892],[556,936,642,1026],[756,950,844,1042],[1006,942,1108,1056],[1228,942,1330,1046]];
+/* Mobile (portrait) artwork 1126 × 2000 */
+const IMG_M_W = 1126;
+const IMG_M_H = 2000;
+const PLATES_M_PX = [[516,646,602,734],[460,780,546,864],[584,782,668,860],[382,904,468,992],[532,902,614,990],[682,904,770,994],[304,1028,380,1100],[436,1026,522,1120],[574,1026,660,1116],[772,1032,860,1118],[208,1154,296,1240],[358,1154,446,1244],[520,1158,606,1236],[696,1154,780,1240],[854,1158,942,1238],[154,1280,242,1350],[328,1288,426,1366],[508,1284,602,1362],[686,1282,774,1378],[866,1288,958,1370],[136,1418,224,1510],[330,1432,424,1524],[572,1424,666,1532],[778,1422,876,1528]];
+/* How far the clickable box grows beyond its number plate, as fractions of the
+   plate size: left/right, up (towards the lid), down (to the box bottom). */
+const PLATE_GROW = { x: 0.22, up: 0.16, down: 0.22 };
+/* String-light bulbs that twinkle: [x, y, diameter] in artwork pixels */
+const BULBS_PX = [[964,56,34],[792,65,28],[994,75,36],[1036,79,26],[964,90,32],[1354,102,40],[1280,116,24],[1784,152,28],[1092,160,40],[1529,157,36],[589,162,28],[210,178,30],[362,199,34],[874,222,36],[667,221,20],[847,228,16]];
+const BULBS_M_PX = [[274,22,28],[369,86,36],[467,140,50],[1012,176,28],[569,186,38],[677,214,36],[1096,228,32],[1006,244,52],[480,303,36],[862,307,32],[971,315,30],[709,354,40],[608,367,32],[259,417,30],[522,499,30],[1015,525,28]];
 
 /* ---------- Date logic ---------- */
 function getToday() {
@@ -104,23 +114,17 @@ function seeded(seed) {
   };
 }
 function pct(v, total) { return +(v / total * 100).toFixed(4); }
-function desktopRects() {
+/* Grow each number plate into the clickable box front (clamped to the artwork) */
+function boxRects(plates, imgW, imgH) {
   const out = {};
-  for (let i = 0; i < DOOR_COUNT; i++) {
-    out[i + 1] = { x: COLS_X[i % 6], y: ROWS_Y[Math.floor(i / 6)], w: DOOR_W, h: DOOR_H };
-  }
-  return out;
-}
-function mobileRects() {
-  /* Tall artwork: door 1 alone under the logo, then 5 rows of 4 (2–21),
-     then 22 · 24 (large, centre) · 23 along the bottom. [x0, y0, x1, y1] in px. */
-  const cols = [[138, 246], [261, 369], [383, 490], [506, 614]];
-  const rows = [[561, 656], [668, 764], [776, 871], [883, 977], [989, 1084]];
-  const box = { 1: [321, 447, 433, 544], 22: [146, 1096, 270, 1210], 24: [286, 1091, 466, 1226], 23: [483, 1096, 610, 1210] };
-  let n = 2;
-  rows.forEach((r) => cols.forEach((c) => { box[n] = [c[0], r[0], c[1], r[1]]; n++; }));
-  const out = {};
-  Object.keys(box).forEach((k) => { const b = box[k]; out[k] = { x: b[0], y: b[1], w: b[2] - b[0], h: b[3] - b[1] }; });
+  plates.forEach((p, i) => {
+    const w = p[2] - p[0], h = p[3] - p[1];
+    const x0 = Math.max(0, Math.round(p[0] - w * PLATE_GROW.x));
+    const x1 = Math.min(imgW, Math.round(p[2] + w * PLATE_GROW.x));
+    const y0 = Math.max(0, Math.round(p[1] - h * PLATE_GROW.up));
+    const y1 = Math.min(imgH, Math.round(p[3] + h * PLATE_GROW.down));
+    out[i + 1] = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  });
   return out;
 }
 function buildGeometry(rects, IMG_W, IMG_H) {
@@ -164,8 +168,8 @@ function buildBulbs(list, IMG_W, IMG_H, seed) {
     };
   });
 }
-const GEOMETRY = buildGeometry(desktopRects(), IMG_W, IMG_H);
-const GEOMETRY_M = buildGeometry(mobileRects(), IMG_M_W, IMG_M_H);
+const GEOMETRY = buildGeometry(boxRects(PLATES_PX, IMG_W, IMG_H), IMG_W, IMG_H);
+const GEOMETRY_M = buildGeometry(boxRects(PLATES_M_PX, IMG_M_W, IMG_M_H), IMG_M_W, IMG_M_H);
 const FLAKES = buildFlakes(70);
 const BULBS = buildBulbs(BULBS_PX, IMG_W, IMG_H, 1224);
 const BULBS_M = buildBulbs(BULBS_M_PX, IMG_M_W, IMG_M_H, 2412);
@@ -177,17 +181,18 @@ function detectLayout() {
 }
 
 
-/* Chimney smoke (mobile artwork) */
-const SMOKE_PUFFS = 16;
-const SMOKE_CYCLE = 9; /* seconds — keep in sync with .puff animation-duration in styles.css */
-
-/* Asset paths (relative to index.html) */
+/* Asset paths (relative to index.html). Scenes: AVIF first, WebP fallback. */
 const ASSETS = {
-  sceneDesktop: 'assets/scene-desktop.avif',
-  sceneMobile: 'assets/scene-mobile.avif',
+  sceneDesktop: 'assets/backgrounds/calendar-desktop.avif',
+  sceneDesktopFallback: 'assets/backgrounds/calendar-desktop.webp',
+  sceneMobile: 'assets/backgrounds/calendar-mobile.avif',
+  sceneMobileFallback: 'assets/backgrounds/calendar-mobile.webp',
   elfTop: 'assets/elf-top.avif',
-  doorSound: 'assets/audio/door-open.mp3'
+  doorSound: 'assets/sounds/gift-open.mp3'
 };
+
+/* ?debug=boxes outlines the clickable areas so the map can be checked against the art */
+const DEBUG_BOXES = /[?&]debug=boxes\b/.test(window.location.search);
 
 /* ============================================================
    DOM rendering (vanilla JS, no dependencies)
@@ -265,36 +270,25 @@ function render() {
   const mobile = state.layout === 'm';
   const geometry = mobile ? GEOMETRY_M : GEOMETRY;
   const bulbs = mobile ? BULBS_M : BULBS;
-  root.className = 'adv-root is-loading ' + (mobile ? 'lay-m' : 'lay-d');
+  root.className = 'adv-root is-loading ' + (mobile ? 'lay-m' : 'lay-d') + (DEBUG_BOXES ? ' debug-boxes' : '');
   root.innerHTML = '';
   els = { doors: {} };
 
   const stage = h('div', { class: 'adv-stage' });
-  const scene = h('img', {
-    class: 'adv-scene',
-    src: mobile ? ASSETS.sceneMobile : ASSETS.sceneDesktop,
-    alt: mobile
-      ? 'Snow-covered wooden Advent Calendar house in front of snowy mountains at dusk'
-      : 'Snow-covered wooden Advent Calendar house in a Christmas market at night',
-    draggable: 'false',
-    decoding: 'async',
-    fetchpriority: 'high'
-  });
-  stage.appendChild(scene);
+  /* <picture>: the browser downloads only one file, AVIF where supported, else WebP */
+  const picture = h('picture', { class: 'adv-scene' }, [
+    h('source', { type: 'image/avif', srcset: mobile ? ASSETS.sceneMobile : ASSETS.sceneDesktop }),
+    h('img', {
+      src: mobile ? ASSETS.sceneMobileFallback : ASSETS.sceneDesktopFallback,
+      alt: 'A pyramid of 24 numbered Christmas presents in the snow, under strings of coloured lights',
+      draggable: 'false',
+      decoding: 'async',
+      fetchpriority: 'high'
+    })
+  ]);
+  const scene = picture.lastChild;
+  stage.appendChild(picture);
   waitForScene(scene);
-
-  /* Mobile artwork: animated chimney smoke. 16 overlapping puffs share one 9 s
-     cycle, each offset by 0.56 s, so the plume is continuous with no visible restart. */
-  if (mobile) {
-    const smoke = h('div', { class: 'smoke', 'aria-hidden': 'true' });
-    for (let i = 0; i < SMOKE_PUFFS; i++) {
-      smoke.appendChild(h('span', {
-        class: 'puff ' + (i % 2 ? 'pb' : 'pa'),
-        style: 'animation-delay:-' + (i * SMOKE_CYCLE / SMOKE_PUFFS).toFixed(3) + 's'
-      }));
-    }
-    stage.appendChild(smoke);
-  }
 
   const lights = h('div', { 'aria-hidden': 'true' });
   bulbs.forEach((b) => lights.appendChild(h('span', {
@@ -317,7 +311,7 @@ function render() {
       h('div', { class: 'face back' })
     ]);
     const btn = h('button', {
-      type: 'button', class: 'hit', id: 'door-' + g.day,
+      type: 'button', class: 'hit', id: 'door-' + g.day, 'data-day': g.day,
       'aria-label': doorLabel(g.day, available),
       onClick: () => handleDoor(g.day)
     });
@@ -450,7 +444,9 @@ function handleDoor(day) {
   state.doors[day] = 'opening';
   updateDoor(day);
   playDoorSound();
-  const wait = prefersReducedMotion() ? 0 : OPEN_MS + REVEAL_MS;
+  const reduced = prefersReducedMotion();
+  const wait = reduced ? 0 : OPEN_MS + REVEAL_MS;
+  if (!reduced) setTimeout(() => fireworks(day), BURST_AT_MS);
   setTimeout(() => {
     state.doors[day] = 'open';   /* the door is gone: empty recess with a glowing star */
     saveOpened(state.doors);
@@ -458,6 +454,32 @@ function handleDoor(day) {
     busy = false;
     openModal(day);
   }, wait);
+}
+
+/* ---------- Fireworks ----------
+   A short burst of sparks from the top of the box: 18 coloured dots fly out on
+   random headings (mostly upwards), fade and shrink, plus a soft flash. Pure CSS
+   animation on transform/opacity; the elements are removed when it ends. */
+const BURST_COLOURS = ['#ffe9a6', '#ffd24a', '#ffffff', '#ff5b5b', '#6ee07a', '#8fd4ff'];
+function fireworks(day) {
+  const d = els.doors && els.doors[day];
+  if (!d || !els.stage) return;
+  const rect = d.slot.getBoundingClientRect();
+  const rnd = seeded(day * 7919 + Date.now() % 1000);
+  const burst = h('div', { class: 'burst', 'aria-hidden': 'true', style: 'left:' + d.slot.style.left + ';top:' + d.slot.style.top + ';width:' + d.slot.style.width + ';height:' + d.slot.style.height });
+  const reach = Math.max(40, rect.width * 1.1);
+  for (let i = 0; i < 18; i++) {
+    const ang = -Math.PI / 2 + (rnd() - 0.5) * Math.PI * 1.5;   /* fan over the top */
+    const dist = reach * (0.5 + rnd() * 0.7);
+    const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - reach * 0.15;
+    burst.appendChild(h('i', {
+      style: '--dx:' + dx.toFixed(1) + 'px;--dy:' + dy.toFixed(1) + 'px;--c:' + BURST_COLOURS[Math.floor(rnd() * BURST_COLOURS.length)] +
+        ';--t:' + (rnd() * 0.12).toFixed(2) + 's;--s:' + (0.6 + rnd() * 0.8).toFixed(2)
+    }));
+  }
+  burst.appendChild(h('b', { class: 'flash' }));
+  els.stage.appendChild(burst);
+  setTimeout(() => burst.remove(), 1400);
 }
 
 function resetDoors() {

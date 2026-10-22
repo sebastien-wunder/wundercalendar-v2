@@ -3,9 +3,18 @@
 Version 2 of the Christmas Advent Calendar: a dependency-free static site (vanilla HTML/CSS/JS) that keeps the original calendar logic and will receive a new visual design. Everything it needs is in this repo, including the artwork and fonts.
 
 ## Structure
-- `public/` — the site: `index.html`, `styles.css`, `app.js`, `assets/` (scene artwork, elf, fonts, `audio/door-open.mp3` played when a door opens)
+- `public/` — the site: `index.html`, `styles.css`, `app.js`, `assets/`
+  - `backgrounds/calendar-desktop.{avif,webp}` (2000 × 1126, landscape) and `calendar-mobile.{avif,webp}` (1126 × 2000, portrait); AVIF is served where supported, WebP otherwise
+  - `sounds/gift-open.mp3`, played when a box opens
+  - `elf-top.avif` (pop-up for box 24), `fonts/`
 - `scripts/build.mjs` — copies `public/` to `dist/` and fails if a file is missing or an external/localhost reference appears
 - `scripts/serve.mjs` — tiny local static server
+
+## Gift box map
+The 24 boxes are part of the artwork. `app.js` holds one list per artwork (`PLATES_PX`, `PLATES_M_PX`) with the pixel rectangle of each box's gold number plate, measured from the image. Each plate is grown by `PLATE_GROW` to cover the box front; that rectangle, converted to percentages of the artwork, is both the clickable area and the opening lid. The artwork is always drawn at the stage's size with its own aspect ratio, so the areas stay aligned at any window size. Add `?debug=boxes` to the URL to outline them.
+
+## Opening sequence
+Click an unlocked box: the box front (cut from the artwork) swings up on its top edge and fades, the sound plays, a short burst of sparks flies out of the box, then the offer pop-up opens. Opened boxes show a lit interior with a golden star. Locked boxes flash and show a toast.
 
 ## Develop
 Requires Node 18+. No `npm install` needed.

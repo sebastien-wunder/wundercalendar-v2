@@ -1,4 +1,4 @@
-/* Wunderino Christmas Advent Calendar — styles */
+/* WunderCalendar V2 — Christmas Advent Calendar — styles */
 /* Source Sans 3 (variable, wght 400-700), self-hosted — SIL OFL */
 @font-face{font-family:"Source Sans 3";font-style:normal;font-weight:400 700;font-display:swap;src:url(assets/fonts/SourceSans3-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:"Source Sans 3";font-style:normal;font-weight:400 700;font-display:swap;src:url(assets/fonts/SourceSans3-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -6,23 +6,23 @@
 html,body{margin:0;padding:0;background:#0a1330}
 a{color:#f4c860}a:hover{color:#ffd98a}
 .adv-root *{box-sizing:border-box}
-.adv-root{--sw:min(max(100vw,178.72vh),147vw,205vh);--sh:calc(var(--sw) * 0.55952);--rh:min(100vh,var(--sh));position:relative;width:100%;height:var(--rh);overflow:hidden;background:#0a1330;container-type:size;container-name:adv}
-/* Portrait screens (phones, tablets upright) use the tall artwork (752 × 1344). Its width is
-   capped so the doors and chalet walls (x 11–89%, y 3–93%) are never cropped; only
-   a little sky, snow or eave snow is trimmed so the picture fills the phone screen. */
-.adv-root.lay-m{--sw:min(max(100vw,calc(100vh * 0.5595)),calc(100vw / 0.78),calc(100vh * 0.6217));--sh:calc(var(--sw) * 1.78723);--nudge:0.024}
-.lay-m .adv-backdrop{background-image:url(assets/scene-mobile.avif)}
-.lay-m .crop{background-image:url(assets/scene-mobile.avif)}
-/* Full-bleed scene. The artwork covers the whole window, but its width is capped
-   so the calendar (x 17.5–82%, y 12–94% of the art) is never cropped:
-   width = min(cover, 100vw/0.68, 100vh*2.05), nudged up 3% to centre the calendar. Any space left over on very tall
-   very wide windows is filled by a blurred copy of the art. On tall windows
-   (phone portrait) the page height shrinks to the artwork, so there is no
-   empty space above or below. */
+/* ---------- Scene sizing ----------
+   Landscape artwork 2000 × 1126 (ratio 1.7762). The picture covers the window
+   (width = max(100vw, 177.62vh)) but is capped at 180vw / 192vh so the present
+   pyramid (x 27–71%, y 6–95% of the art) is never cropped: on very wide or very
+   tall windows the artwork is letterboxed and the gaps are filled by a blurred
+   copy of it. The stage is always centred in the window. */
+.adv-root{--sw:min(max(100vw,177.62vh),180vw,192vh);--sh:calc(var(--sw) * 0.563);--rh:100vh;position:relative;width:100%;height:var(--rh);overflow:hidden;background:#3a1208;container-type:size;container-name:adv}
+/* Portrait artwork 1126 × 2000 (ratio 0.563): the presents span almost the full
+   width (x 12–85%), so at most 4% may be trimmed from the sides. On tall phones
+   the picture is therefore narrower than "cover" and the blurred copy fills the
+   space above and below. */
+.adv-root.lay-m{--sw:min(max(100vw,56.3vh),104vw);--sh:calc(var(--sw) * 1.7762)}
+.lay-m .adv-backdrop,.lay-m .crop{background-image:url(assets/backgrounds/calendar-mobile.webp);background-image:image-set(url(assets/backgrounds/calendar-mobile.avif) type("image/avif"),url(assets/backgrounds/calendar-mobile.webp) type("image/webp"))}
 .adv-wrap{position:absolute;inset:0;overflow:hidden}
-.adv-backdrop{position:absolute;inset:-60px;background:url(assets/scene-desktop.avif) center/cover no-repeat;filter:blur(22px) brightness(.62) saturate(1.1);transform:scale(1.08);pointer-events:none}
-.adv-stage{position:absolute;left:50%;top:max(calc(100% - var(--sh)),min(0px,calc((100% - var(--sh)) / 2 - var(--sh) * var(--nudge,0.03))));width:var(--sw);height:var(--sh);transform:translateX(-50%);overflow:hidden;user-select:none;-webkit-user-select:none}
-.adv-scene{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.adv-backdrop{position:absolute;inset:-60px;background:url(assets/backgrounds/calendar-desktop.webp) center/cover no-repeat;background-image:image-set(url(assets/backgrounds/calendar-desktop.avif) type("image/avif"),url(assets/backgrounds/calendar-desktop.webp) type("image/webp"));filter:blur(22px) brightness(.62) saturate(1.1);transform:scale(1.08);pointer-events:none}
+.adv-stage{position:absolute;left:50%;top:calc((100% - var(--sh)) / 2);width:var(--sw);height:var(--sh);transform:translateX(-50%);overflow:hidden;user-select:none;-webkit-user-select:none}
+.adv-scene,.adv-scene img{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 /* Loading: hide the scene until the artwork is ready, then fade it in */
 .adv-stage,.adv-backdrop,.test-bar{transition:opacity .45s ease}
 .adv-root.is-loading .adv-stage,.adv-root.is-loading .adv-backdrop,.adv-root.is-loading .test-bar{opacity:0}
@@ -34,46 +34,29 @@ a{color:#f4c860}a:hover{color:#ffd98a}
 .bulb{position:absolute;aspect-ratio:1/1;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,240,190,.95) 0%,rgba(255,200,95,.45) 32%,rgba(255,170,60,0) 70%);opacity:.2;animation-name:twinkle;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}
 @keyframes twinkle{0%{opacity:.05}55%{opacity:.55}100%{opacity:.85}}
 
-/* ---------- Chimney smoke (mobile artwork only) ----------
-   Anchored on the chimney mouth at 205 × 113 px of the 752 × 1344 artwork.
-   Many soft, overlapping puffs rise, swell, drift with the wind and fade;
-   staggered delays make the plume continuous. */
-.smoke{position:absolute;left:27.3%;top:8.4%;width:10.5%;aspect-ratio:1/1;transform:translate(-50%,-50%);pointer-events:none;z-index:1}
-.smoke::before{content:"";position:absolute;left:18%;right:18%;top:42%;bottom:20%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,250,250,.5),rgba(255,250,250,0))}
-/* Softness comes from the gradient alone (no blur filter, and a plain `circle`
-   gradient: both the filter and a `closest-side` gradient failed to render on
-   these animated layers in Chromium). */
-.puff{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(255,255,255,.85) 35%,rgba(230,222,235,.4) 60%,rgba(230,222,235,0) 72%);opacity:0;will-change:transform,opacity;animation-duration:9s;animation-timing-function:linear;animation-iteration-count:infinite}
-.puff.pa{animation-name:smokeA}
-.puff.pb{animation-name:smokeB;border-radius:46% 54% 50% 50%/58% 42% 58% 42%}
-/* Puffs start small at the chimney mouth, swell as they rise, lean with a light
-   breeze to the right and thin out gradually rather than vanishing. */
-@keyframes smokeA{
-0%{transform:translate(0,10%) scale(.3);opacity:0}
-8%{transform:translate(2%,-18%) scale(.5);opacity:.6}
-25%{transform:translate(7%,-80%) scale(.85);opacity:.55}
-50%{transform:translate(-6%,-175%) scale(1.35);opacity:.4}
-75%{transform:translate(18%,-280%) scale(1.9);opacity:.2}
-100%{transform:translate(48%,-390%) scale(2.5);opacity:0}}
-@keyframes smokeB{
-0%{transform:translate(0,10%) scale(.28) rotate(0deg);opacity:0}
-8%{transform:translate(-2%,-20%) scale(.48) rotate(6deg);opacity:.56}
-25%{transform:translate(-7%,-82%) scale(.82) rotate(22deg);opacity:.5}
-50%{transform:translate(8%,-178%) scale(1.3) rotate(48deg);opacity:.36}
-75%{transform:translate(2%,-284%) scale(1.85) rotate(72deg);opacity:.18}
-100%{transform:translate(40%,-392%) scale(2.45) rotate(100deg);opacity:0}}
-/* keep the test-mode buttons off the smoke on mobile */
+/* ---------- Fireworks (on opening) ---------- */
+.burst{position:absolute;z-index:7;pointer-events:none}
+.burst i{position:absolute;left:50%;top:22%;width:calc(7px * var(--s));height:calc(7px * var(--s));margin:calc(-3.5px * var(--s)) 0 0 calc(-3.5px * var(--s));border-radius:50%;background:var(--c);box-shadow:0 0 6px 1px var(--c);opacity:0;will-change:transform,opacity;animation:burst .95s cubic-bezier(.15,.85,.3,1) var(--t) both}
+@keyframes burst{0%{transform:translate(0,0) scale(.4);opacity:0}8%{opacity:1}65%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+
+.burst .flash{position:absolute;left:50%;top:22%;width:60%;aspect-ratio:1/1;margin-left:-30%;transform:translateY(-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,244,200,.9) 0%,rgba(255,214,100,.45) 35%,rgba(255,200,80,0) 70%);mix-blend-mode:screen;animation:flash .7s ease-out both}
+@keyframes flash{0%{transform:translateY(-50%) scale(.3);opacity:0}25%{opacity:1}100%{transform:translateY(-50%) scale(1.6);opacity:0}}
+/* keep the test-mode buttons at the bottom on phones (the art's top is the sky) */
 .lay-m .test-bar{top:auto;bottom:12px}
+/* ?debug=boxes: outline every clickable area to check the map against the art */
+.debug-boxes .slot{outline:2px solid #00e5ff;outline-offset:-2px}
+.debug-boxes .hit::after{content:attr(data-day);position:absolute;left:2px;top:0;font:700 12px/1.4 system-ui,sans-serif;color:#00e5ff;text-shadow:0 0 3px #000}
 /* On phones the bottom edge is hidden by the browser toolbar and the test bar,
    so the "door opens on…" toast appears mid-screen instead. */
 .lay-m .toast-region{bottom:auto;top:40%}
 
-/* ---------- Doors ----------
-   The door swings open on its hinge inside its own frame (overflow hidden,
-   so it never covers a neighbour), fades out as it opens, and leaves an
-   empty lit recess with a glowing star. */
-.slot{position:absolute;overflow:hidden;border-radius:3px;perspective:700px;z-index:2}
-.interior{position:absolute;inset:0;background:#2b1007;box-shadow:inset 0 0 0 2px #3a1a0a,inset 0 0 18px 6px rgba(0,0,0,.75)}
+/* ---------- Gift boxes ----------
+   Each box front (cut from the artwork) is a flap hinged along its top edge. On
+   opening it swings up and back into the box, inside its own frame (overflow
+   hidden, so it never covers a neighbour), fades, and leaves a lit interior
+   with a glowing golden star. */
+.slot{position:absolute;overflow:hidden;border-radius:4px;perspective:600px;z-index:2}
+.interior{position:absolute;inset:0;background:#2a0c0c;box-shadow:inset 0 0 0 2px #3d1313,inset 0 0 18px 6px rgba(0,0,0,.75)}
 .glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 52%,rgba(255,236,170,.95) 0%,rgba(247,188,78,.75) 20%,rgba(160,70,20,.45) 50%,rgba(40,14,5,0) 76%);opacity:0;transition:opacity .5s ease .25s}
 .is-open .glow{opacity:1}
 .is-done .glow{animation:glowPulse 2.8s ease-in-out infinite}
@@ -92,19 +75,20 @@ a{color:#f4c860}a:hover{color:#ffd98a}
 .spark.s6{left:48%;top:78%;animation-delay:.45s!important}
 @keyframes spark{0%{opacity:0;transform:scale(0)}35%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(.4) translateY(-40%)}}
 
-.leaf{position:absolute;inset:0;transform-origin:100% 50%;transform-style:preserve-3d;transition:transform 750ms cubic-bezier(.3,.75,.25,1),opacity 260ms ease 520ms;pointer-events:none}
-.slot:not(.is-open):hover .leaf{transform:rotateY(12deg)}
-.is-open .leaf{transform:rotateY(100deg);opacity:0}
+.leaf{position:absolute;inset:0;transform-origin:50% 0;transform-style:preserve-3d;transition:transform 750ms cubic-bezier(.3,.75,.25,1),opacity 260ms ease 520ms;pointer-events:none}
+.slot:not(.is-open):hover .leaf{transform:rotateX(7deg)}
+.is-open .leaf{transform:rotateX(100deg);opacity:0}
 .is-done .leaf{visibility:hidden}
 .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
-.crop{background-image:url(assets/scene-desktop.avif);background-repeat:no-repeat}
-.front::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.6),rgba(0,0,0,.1) 75%);opacity:0;transition:opacity 750ms ease}
-.slot:not(.is-open):hover .front::after{opacity:.18}
+.crop{background-image:url(assets/backgrounds/calendar-desktop.webp);background-image:image-set(url(assets/backgrounds/calendar-desktop.avif) type("image/avif"),url(assets/backgrounds/calendar-desktop.webp) type("image/webp"));background-repeat:no-repeat}
+.front::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55));opacity:0;transition:opacity 750ms ease}
+.slot:not(.is-open):hover .front::after{opacity:.15}
 .is-open .front::after{opacity:1}
-.back{transform:rotateY(180deg);background-color:#6e4220;background-image:repeating-linear-gradient(91deg,rgba(255,220,170,.07) 0 3px,rgba(0,0,0,.1) 3px 5px,rgba(255,220,170,0) 5px 11px),linear-gradient(90deg,#4f2c12,#7b4a24 40%,#5d3518);box-shadow:inset 0 0 0 3px #3b200c,inset 0 0 16px rgba(0,0,0,.55)}
+.back{transform:rotateX(180deg);background-color:#5a1515;background-image:linear-gradient(180deg,#6b1a1a,#3f0e0e);box-shadow:inset 0 0 0 3px #2d0909,inset 0 0 16px rgba(0,0,0,.55)}
 
-.hit{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:3px;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;z-index:5;transition:box-shadow .2s,background-color .2s}
-.hit:hover{background-color:rgba(255,226,150,.08);box-shadow:inset 0 0 0 2px rgba(255,214,120,.7),inset 0 0 22px rgba(255,200,90,.35)}
+.hit{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:4px;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;z-index:5;transition:box-shadow .2s,background-color .2s}
+.hit:hover{background-color:rgba(255,236,170,.1);box-shadow:inset 0 0 0 2px rgba(255,224,140,.75),inset 0 0 24px rgba(255,210,100,.4)}
+.hit:active{background-color:rgba(255,236,170,.18)}
 .hit:focus{outline:none}
 .hit:focus-visible{box-shadow:inset 0 0 0 3px #ffe08a,inset 0 0 0 6px rgba(10,19,48,.6)}
 .is-locked .hit:hover{background-color:rgba(220,230,255,.06);box-shadow:inset 0 0 0 2px rgba(220,230,255,.4)}
@@ -197,7 +181,7 @@ a{color:#f4c860}a:hover{color:#ffd98a}
 }
 @media (prefers-reduced-motion:reduce){
 .cta,.hit,.leaf,.glow,.star,.front::after{transition:none!important}
-.puff{animation-play-state:paused!important}
+.burst{display:none}
 .bulb,.spark,.overlay,.dlg-wrap,.elf-top,.toast,.adv-root::after,.is-shake .hit,.is-done .glow,.is-done .star{animation:none!important}
 .snow{display:none}
 .bulb{opacity:.35}
