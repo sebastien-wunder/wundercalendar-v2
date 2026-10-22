@@ -1,6 +1,6 @@
-# Christmas Advent Calendar
+# WunderCalendar V2 — Christmas Advent Calendar
 
-Dependency-free static site (vanilla HTML/CSS/JS), replicated from the original WunderCalendar. Everything it needs is in this repo, including the artwork and fonts.
+Version 2 of the Christmas Advent Calendar: a dependency-free static site (vanilla HTML/CSS/JS) that keeps the original calendar logic and will receive a new visual design. Everything it needs is in this repo, including the artwork and fonts.
 
 ## Structure
 - `public/` — the site: `index.html`, `styles.css`, `app.js`, `assets/` (scene artwork, elf, fonts, `audio/door-open.mp3` played when a door opens)
