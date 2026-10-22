@@ -31,9 +31,9 @@ const CTA_LABEL = 'Spiele jetzt';
 const CTA_URL = 'https://www.wunderino.de/';
 
 const DOOR_COUNT = 24;
-const OPEN_MS = 850;      /* lid flight (matches the CSS animation) */
-const REVEAL_MS = 200;    /* pause on the fireworks before the offer appears */
-const BURST_AT_MS = 180;  /* fireworks start this long after the click */
+const OPEN_MS = 780;      /* lid swing + fade (matches the CSS transitions) */
+const REVEAL_MS = 260;    /* pause on the fireworks before the offer appears */
+const BURST_AT_MS = 260;  /* fireworks start this long after the click */
 const STORE_KEY = 'advent-opened-v1'; /* remembers opened doors in production mode */
 const TOAST_MS = 2800;
 const ELF_DAY = 24;       /* this door's pop-up is held by the elf character */
@@ -54,12 +54,8 @@ const IMG_M_W = 1126;
 const IMG_M_H = 2000;
 const PLATES_M_PX = [[516,646,602,734],[460,780,546,864],[584,782,668,860],[382,904,468,992],[532,902,614,990],[682,904,770,994],[304,1028,380,1100],[436,1026,522,1120],[574,1026,660,1116],[772,1032,860,1118],[208,1154,296,1240],[358,1154,446,1244],[520,1158,606,1236],[696,1154,780,1240],[854,1158,942,1238],[154,1280,242,1350],[328,1288,426,1366],[508,1284,602,1362],[686,1282,774,1378],[866,1288,958,1370],[136,1418,224,1510],[330,1432,424,1524],[572,1424,666,1532],[778,1422,876,1528]];
 /* How far the clickable box grows beyond its number plate, as fractions of the
-   plate size: left/right and down (to the box bottom). Above the plate sits the
-   lid (with its bow), LID_H plate-heights tall, which flies off on opening;
-   LID_OVERLAP lets the opening dip a little into the box front. */
-const PLATE_GROW = { x: 0.22, down: 0.22 };
-const LID_H = 0.62;
-const LID_OVERLAP = 0.06;
+   plate size: left/right, up (towards the lid), down (to the box bottom). */
+const PLATE_GROW = { x: 0.22, up: 0.16, down: 0.22 };
 /* String-light bulbs that twinkle: [x, y, diameter] in artwork pixels */
 const BULBS_PX = [[964,56,34],[792,65,28],[994,75,36],[1036,79,26],[964,90,32],[1354,102,40],[1280,116,24],[1784,152,28],[1092,160,40],[1529,157,36],[589,162,28],[210,178,30],[362,199,34],[874,222,36],[667,221,20],[847,228,16]];
 const BULBS_M_PX = [[274,22,28],[369,86,36],[467,140,50],[1012,176,28],[569,186,38],[677,214,36],[1096,228,32],[1006,244,52],[480,303,36],[862,307,32],[971,315,30],[709,354,40],[608,367,32],[259,417,30],[522,499,30],[1015,525,28]];
@@ -118,34 +114,32 @@ function seeded(seed) {
   };
 }
 function pct(v, total) { return +(v / total * 100).toFixed(4); }
-/* Background-size/position that shows exactly rect r of the artwork in an
-   element of the same aspect ratio (used to cut the lid out of the picture). */
-function cropOf(r, IMG_W, IMG_H) {
-  return {
-    bgs: (IMG_W / r.w * 100).toFixed(3) + '% ' + (IMG_H / r.h * 100).toFixed(3) + '%',
-    bgp: (r.x / (IMG_W - r.w) * 100).toFixed(4) + '% ' + (r.y / (IMG_H - r.h) * 100).toFixed(4) + '%'
-  };
-}
-/* From each number plate: the whole box (lid + front, the clickable slot) and
-   the lid rectangle at its top, all as percentages. */
-function buildGeometry(plates, IMG_W, IMG_H) {
-  return plates.map((p, i) => {
+/* Grow each number plate into the clickable box front (clamped to the artwork) */
+function boxRects(plates, imgW, imgH) {
+  const out = {};
+  plates.forEach((p, i) => {
     const w = p[2] - p[0], h = p[3] - p[1];
     const x0 = Math.max(0, Math.round(p[0] - w * PLATE_GROW.x));
-    const x1 = Math.min(IMG_W, Math.round(p[2] + w * PLATE_GROW.x));
-    const lidTop = Math.max(0, Math.round(p[1] - h * LID_H));
-    const lidBottom = Math.round(p[1] + h * LID_OVERLAP);
-    const y1 = Math.min(IMG_H, Math.round(p[3] + h * PLATE_GROW.down));
-    const slot = { x: x0, y: lidTop, w: x1 - x0, h: y1 - lidTop };
-    const lid = { x: x0, y: lidTop, w: x1 - x0, h: lidBottom - lidTop };
-    const crop = cropOf(lid, IMG_W, IMG_H);
-    return {
-      day: i + 1,
-      l: pct(slot.x, IMG_W), t: pct(slot.y, IMG_H), w: pct(slot.w, IMG_W), h: pct(slot.h, IMG_H),
-      lidH: pct(lid.h, slot.h),
-      bgs: crop.bgs, bgp: crop.bgp
-    };
+    const x1 = Math.min(imgW, Math.round(p[2] + w * PLATE_GROW.x));
+    const y0 = Math.max(0, Math.round(p[1] - h * PLATE_GROW.up));
+    const y1 = Math.min(imgH, Math.round(p[3] + h * PLATE_GROW.down));
+    out[i + 1] = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   });
+  return out;
+}
+function buildGeometry(rects, IMG_W, IMG_H) {
+  const out = [];
+  for (let i = 0; i < DOOR_COUNT; i++) {
+    const day = i + 1;
+    const r = rects[day];
+    out.push({
+      day: day,
+      l: pct(r.x, IMG_W), t: pct(r.y, IMG_H), w: pct(r.w, IMG_W), h: pct(r.h, IMG_H),
+      bgs: (IMG_W / r.w * 100).toFixed(3) + '% ' + (IMG_H / r.h * 100).toFixed(3) + '%',
+      bgp: (r.x / (IMG_W - r.w) * 100).toFixed(4) + '% ' + (r.y / (IMG_H - r.h) * 100).toFixed(4) + '%'
+    });
+  }
+  return out;
 }
 function buildFlakes(n) {
   const rnd = seeded(2512);
@@ -174,8 +168,8 @@ function buildBulbs(list, IMG_W, IMG_H, seed) {
     };
   });
 }
-const GEOMETRY = buildGeometry(PLATES_PX, IMG_W, IMG_H);
-const GEOMETRY_M = buildGeometry(PLATES_M_PX, IMG_M_W, IMG_M_H);
+const GEOMETRY = buildGeometry(boxRects(PLATES_PX, IMG_W, IMG_H), IMG_W, IMG_H);
+const GEOMETRY_M = buildGeometry(boxRects(PLATES_M_PX, IMG_M_W, IMG_M_H), IMG_M_W, IMG_M_H);
 const FLAKES = buildFlakes(70);
 const BULBS = buildBulbs(BULBS_PX, IMG_W, IMG_H, 1224);
 const BULBS_M = buildBulbs(BULBS_M_PX, IMG_M_W, IMG_M_H, 2412);
@@ -306,15 +300,16 @@ function render() {
   const now = getToday();
   geometry.forEach((g) => {
     const available = isDoorAvailable(g.day, now);
-    /* The opening at the top of the box (shown once the lid is gone) ... */
-    const hole = h('div', { class: 'hole', 'aria-hidden': 'true', style: 'height:' + g.lidH + '%' }, [
+    const interior = h('div', { class: 'interior', 'aria-hidden': 'true' }, [
       h('span', { class: 'glow' }),
       starSvg('star'),
       h('span', { class: 'spark s1' }), h('span', { class: 'spark s2' }), h('span', { class: 'spark s3' }),
       h('span', { class: 'spark s4' }), h('span', { class: 'spark s5' }), h('span', { class: 'spark s6' })
     ]);
-    /* ... and the lid itself: that part of the artwork, which flies off on opening */
-    const lid = h('div', { class: 'lid crop', 'aria-hidden': 'true', style: 'height:' + g.lidH + '%;background-size:' + g.bgs + ';background-position:' + g.bgp });
+    const leaf = h('div', { class: 'leaf', 'aria-hidden': 'true' }, [
+      h('div', { class: 'face front crop', style: 'background-size:' + g.bgs + ';background-position:' + g.bgp }),
+      h('div', { class: 'face back' })
+    ]);
     const btn = h('button', {
       type: 'button', class: 'hit', id: 'door-' + g.day, 'data-day': g.day,
       'aria-label': doorLabel(g.day, available),
@@ -323,7 +318,7 @@ function render() {
     const slot = h('div', {
       class: doorClass(g.day, available),
       style: 'left:' + g.l + '%;top:' + g.t + '%;width:' + g.w + '%;height:' + g.h + '%'
-    }, [hole, lid, btn]);
+    }, [interior, leaf, btn]);
     els.doors[g.day] = { slot: slot, btn: btn };
     stage.appendChild(slot);
   });
@@ -447,13 +442,6 @@ function handleDoor(day) {
   if (st === 'opening') return;
   busy = true;
   state.doors[day] = 'opening';
-  /* each lid flies off on its own random heading and spin */
-  const slot = els.doors[day] && els.doors[day].slot;
-  if (slot) {
-    const dir = Math.random() < 0.5 ? -1 : 1;
-    slot.style.setProperty('--lx', (dir * (35 + Math.random() * 45)).toFixed(0) + '%');
-    slot.style.setProperty('--lr', (dir * (25 + Math.random() * 35)).toFixed(0) + 'deg');
-  }
   updateDoor(day);
   playDoorSound();
   const reduced = prefersReducedMotion();
