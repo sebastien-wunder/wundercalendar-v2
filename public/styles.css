@@ -55,8 +55,10 @@ a{color:#f4c860}a:hover{color:#ffd98a}
    opening it swings up and back into the box, inside its own frame (overflow
    hidden, so it never covers a neighbour), fades, and leaves a lit interior
    with a glowing golden star. */
-.slot{position:absolute;overflow:hidden;border-radius:4px;perspective:600px;z-index:2}
-.interior{position:absolute;inset:0;background:#2a0c0c;box-shadow:inset 0 0 0 2px #3d1313,inset 0 0 18px 6px rgba(0,0,0,.75)}
+.slot{position:absolute;overflow:hidden;perspective:600px;z-index:2}
+/* The lit interior only exists once the box is open; at rest nothing covers the art. */
+.interior{position:absolute;inset:0;background:#2a0c0c;box-shadow:inset 0 0 0 2px #3d1313,inset 0 0 18px 6px rgba(0,0,0,.75);visibility:hidden}
+.is-open .interior{visibility:visible}
 .glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 52%,rgba(255,236,170,.95) 0%,rgba(247,188,78,.75) 20%,rgba(160,70,20,.45) 50%,rgba(40,14,5,0) 76%);opacity:0;transition:opacity .5s ease .25s}
 .is-open .glow{opacity:1}
 .is-done .glow{animation:glowPulse 2.8s ease-in-out infinite}
@@ -75,7 +77,10 @@ a{color:#f4c860}a:hover{color:#ffd98a}
 .spark.s6{left:48%;top:78%;animation-delay:.45s!important}
 @keyframes spark{0%{opacity:0;transform:scale(0)}35%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(.4) translateY(-40%)}}
 
-.leaf{position:absolute;inset:0;transform-origin:50% 0;transform-style:preserve-3d;transition:transform 750ms cubic-bezier(.3,.75,.25,1),opacity 260ms ease 520ms;pointer-events:none}
+/* The flap is a copy of the artwork, so at rest it stays hidden (no seam over the
+   picture); it appears only while hovered or opening. */
+.leaf{position:absolute;inset:0;transform-origin:50% 0;transform-style:preserve-3d;transition:transform 750ms cubic-bezier(.3,.75,.25,1),opacity 260ms ease 520ms;pointer-events:none;visibility:hidden}
+.slot:not(.is-open):hover .leaf,.is-opening .leaf{visibility:visible}
 .slot:not(.is-open):hover .leaf{transform:rotateX(7deg)}
 .is-open .leaf{transform:rotateX(100deg);opacity:0}
 .is-done .leaf{visibility:hidden}
