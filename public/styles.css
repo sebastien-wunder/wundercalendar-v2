@@ -13,11 +13,12 @@ a{color:#f4c860}a:hover{color:#ffd98a}
    tall windows the artwork is letterboxed and the gaps are filled by a blurred
    copy of it. The stage is always centred in the window. */
 .adv-root{--sw:min(max(100vw,177.62vh),180vw,192vh);--sh:calc(var(--sw) * 0.563);--rh:100vh;position:relative;width:100%;height:var(--rh);overflow:hidden;background:#3a1208;container-type:size;container-name:adv}
-/* Portrait artwork 1126 × 2000 (ratio 0.563): the presents span almost the full
-   width (x 12–85%), so at most 4% may be trimmed from the sides. On tall phones
-   the picture is therefore narrower than "cover" and the blurred copy fills the
-   space above and below. */
-.adv-root.lay-m{--sw:min(max(100vw,56.3vh),104vw);--sh:calc(var(--sw) * 1.7762)}
+/* Portrait artwork 1126 × 2000 (ratio 0.563). It fills the whole screen, anchored
+   to the top, cropping at most 9% from each side (the presents span x 12–85%).
+   Only on unusually tall phones is it capped at 122vw, leaving a gap at the
+   bottom that the blurred copy fills. */
+.adv-root.lay-m{--sw:min(max(100vw,56.3vh),122vw);--sh:calc(var(--sw) * 1.7762)}
+.lay-m .adv-stage{top:0}
 .lay-m .adv-backdrop,.lay-m .crop{background-image:url(assets/backgrounds/calendar-mobile.webp);background-image:image-set(url(assets/backgrounds/calendar-mobile.avif) type("image/avif"),url(assets/backgrounds/calendar-mobile.webp) type("image/webp"))}
 .adv-wrap{position:absolute;inset:0;overflow:hidden}
 .adv-backdrop{position:absolute;inset:-60px;background:url(assets/backgrounds/calendar-desktop.webp) center/cover no-repeat;background-image:image-set(url(assets/backgrounds/calendar-desktop.avif) type("image/avif"),url(assets/backgrounds/calendar-desktop.webp) type("image/webp"));filter:blur(22px) brightness(.62) saturate(1.1);transform:scale(1.08);pointer-events:none}
