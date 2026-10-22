@@ -78,16 +78,14 @@ a{color:#f4c860}a:hover{color:#ffd98a}
 @keyframes spark{0%{opacity:0;transform:scale(0)}35%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(.4) translateY(-40%)}}
 
 /* The flap is a copy of the artwork, so at rest it stays hidden (no seam over the
-   picture); it appears only while hovered or opening. */
+   picture); it appears only while the box is opening. */
 .leaf{position:absolute;inset:0;transform-origin:50% 0;transform-style:preserve-3d;transition:transform 750ms cubic-bezier(.3,.75,.25,1),opacity 260ms ease 520ms;pointer-events:none;visibility:hidden}
-.slot:not(.is-open):hover .leaf,.is-opening .leaf{visibility:visible}
-.slot:not(.is-open):hover .leaf{transform:rotateX(7deg)}
+.is-opening .leaf{visibility:visible}
 .is-open .leaf{transform:rotateX(100deg);opacity:0}
 .is-done .leaf{visibility:hidden}
 .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
 .crop{background-image:url(assets/backgrounds/calendar-desktop.webp);background-image:image-set(url(assets/backgrounds/calendar-desktop.avif) type("image/avif"),url(assets/backgrounds/calendar-desktop.webp) type("image/webp"));background-repeat:no-repeat}
 .front::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55));opacity:0;transition:opacity 750ms ease}
-.slot:not(.is-open):hover .front::after{opacity:.15}
 .is-open .front::after{opacity:1}
 .back{transform:rotateX(180deg);background-color:#5a1515;background-image:linear-gradient(180deg,#6b1a1a,#3f0e0e);box-shadow:inset 0 0 0 3px #2d0909,inset 0 0 16px rgba(0,0,0,.55)}
 
